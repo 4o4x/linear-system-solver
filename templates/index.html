@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="tr">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Matris İşlem Uygulaması</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background-color: #f4f4f4;
+            }
+            h1 {
+                text-align: center;
+            }
+            .container {
+                max-width: 600px;
+                margin: auto;
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .matrix-section {
+                margin-bottom: 30px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            input[type="string"] {
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
+                text-align: center;
+                border: none;
+                background-color: transparent;
+                font-size: 16px;
+            }
+            table {
+                border-collapse: collapse;
+                margin-top: 10px;
+                width: 100%;
+                table-layout: fixed;
+            }
+            table,
+            th,
+            td {
+                border: 1px solid #ddd;
+            }
+            th,
+            td {
+                padding: 0;
+                width: 50px;
+                height: 50px;
+                text-align: center;
+            }
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+            tr:hover {
+                background-color: #ddd;
+            }
+            th {
+                background-color: #4caf50;
+                color: white;
+            }
+            button {
+                padding: 10px 20px;
+                background: #28a745;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #218838;
+            }
+            .result,
+            .error {
+                margin-top: 20px;
+                padding: 10px;
+                border-radius: 4px;
+            }
+            .result {
+                background: #d4edda;
+                color: #155724;
+            }
+            .error {
+                background: #f8d7da;
+                color: #721c24;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Matris İşlem Uygulaması</h1>
+            <form id="matrixForm">
+                <!-- 2D Matris Bölümü -->
+                <div class="matrix-section">
+                    <h2>2D Matris (n x n)</h2>
+                    <label for="matrixSize">Boyut (n):</label>
+                    <input
+                        type="number"
+                        id="matrixSize"
+                        min="1"
+                        value="2"
+                        required
+                    />
+                    <div id="matrix2dInputs"></div>
+                </div>
+
+                <!-- 1D Matris Bölümü -->
+                <div class="matrix-section">
+                    <h2>1D Matris</h2>
+                    <label for="matrix1dLength">Eleman Sayısı (n):</label>
+                    <input
+                        type="number"
+                        id="matrix1dLength"
+                        min="1"
+                        value="2"
+                        required
+                        readonly
+                    />
+                    <div id="matrix1dInputs"></div>
+                </div>
+
+                <button type="submit">İşlemi Gerçekleştir</button>
+            </form>
+
+            <div id="response" class="result" style="display: none"></div>
+            <div id="error" class="error" style="display: none"></div>
+        </div>
+
+        <script>
+            // Başlangıçta input kutularını oluştur
+            document.addEventListener("DOMContentLoaded", function () {
+                generateMatrixInputs();
+            });
+
+            // Matris boyutu değiştiğinde inputları yeniden oluştur
+            document
+                .getElementById("matrixSize")
+                .addEventListener("input", function () {
+                    const size = parseInt(this.value);
+                    if (isNaN(size) || size < 1) {
+                        alert("Matris boyutu 1'den küçük olamaz.");
+                        return;
+                    }
+                    document.getElementById("matrix1dLength").value = size;
+                    generateMatrixInputs();
+                });
+
+            function generateMatrixInputs() {
+                const size = parseInt(
+                    document.getElementById("matrixSize").value,
+                );
+                const matrix2dDiv = document.getElementById("matrix2dInputs");
+                const matrix1dDiv = document.getElementById("matrix1dInputs");
+
+                // 2D Matris Inputları
+                matrix2dDiv.innerHTML = '<table id="matrix2dTable"></table>';
+                const table2d = document.getElementById("matrix2dTable");
+
+                for (let i = 0; i < size; i++) {
+                    let row = table2d.insertRow();
+                    for (let j = 0; j < size; j++) {
+                        let cell = row.insertCell();
+                        let input = document.createElement("input");
+                        input.type = "string"; // "string" yerine "number" olmalı
+                        input.step = "any";
+                        input.required = true;
+                        input.id = `matrix2d_${i}_${j}`;
+                        cell.appendChild(input);
+                    }
+                }
+
+                // 1D Matris Inputları
+                matrix1dDiv.innerHTML =
+                    '<table id="matrix1dTable"><tr></tr></table>';
+                const table1d = document.getElementById("matrix1dTable");
+                let row1d = table1d.rows[0];
+                for (let i = 0; i < size; i++) {
+                    let cell = row1d.insertCell();
+                    let input = document.createElement("input");
+                    input.type = "string";
+                    input.step = "any";
+                    input.required = true;
+                    input.id = `matrix1d_${i}`;
+                    cell.appendChild(input);
+                }
+            }
+
+            document
+                .getElementById("matrixForm")
+                .addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    // Gizli mesajları temizle
+                    document.getElementById("response").style.display = "none";
+                    document.getElementById("error").style.display = "none";
+
+                    // Matris boyutunu al
+                    const size = parseInt(
+                        document.getElementById("matrixSize").value,
+                    );
+
+                    // 2D Matris Elemanlarını Al
+                    let matrix2d = [];
+                    for (let i = 0; i < size; i++) {
+                        let row = [];
+                        for (let j = 0; j < size; j++) {
+                            let value = parseFloat(
+                                document.getElementById(`matrix2d_${i}_${j}`)
+                                    .value,
+                            );
+                            if (isNaN(value)) {
+                                showError(
+                                    "2D matris elemanları sayısal olmalıdır.",
+                                );
+                                return;
+                            }
+                            row.push(value);
+                        }
+                        matrix2d.push(row);
+                    }
+
+                    // 1D Matris Elemanlarını Al
+                    let matrix1d = [];
+                    for (let i = 0; i < size; i++) {
+                        let value = parseFloat(
+                            document.getElementById(`matrix1d_${i}`).value,
+                        );
+                        if (isNaN(value)) {
+                            showError(
+                                "1D matris elemanları sayısal olmalıdır.",
+                            );
+                            return;
+                        }
+                        matrix1d.push(value);
+                    }
+
+                    const payload = {
+                        matrix_2d: matrix2d,
+                        matrix_1d: matrix1d,
+                    };
+
+                    fetch("/process", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                        .then((response) =>
+                            response.json().then((data) => ({
+                                status: response.status,
+                                body: data,
+                            })),
+                        )
+                        .then((result) => {
+                            if (result.status === 200) {
+                                displayResult(result.body.result_matrix);
+                            } else {
+                                displayError(
+                                    result.body.error || "Bir hata oluştu.",
+                                );
+                            }
+                        })
+                        .catch((error) => {
+                            displayError(
+                                "İstek gönderilirken bir hata oluştu.",
+                            );
+                            console.error("Error:", error);
+                        });
+                });
+
+            function displayResult(result) {
+                const responseDiv = document.getElementById("response");
+                responseDiv.style.display = "block";
+
+                // Tablo oluşturma
+                let table = "<strong>Sonuç Matris:</strong><br><table>";
+
+                // Eğer sonuç 2D ise her satırı tablo satırı olarak ekleyelim
+                if (Array.isArray(result[0])) {
+                    result.forEach((row) => {
+                        table += "<tr>";
+                        row.forEach((element) => {
+                            table += `<td>${element}</td>`;
+                        });
+                        table += "</tr>";
+                    });
+                } else {
+                    // 1D ise tek bir satır olarak ekleyelim
+                    table += "<tr>";
+                    result.forEach((element) => {
+                        table += `<td>${element}</td>`;
+                    });
+                    table += "</tr>";
+                }
+
+                table += "</table>";
+
+                responseDiv.innerHTML = table;
+            }
+
+            function showError(message) {
+                const errorDiv = document.getElementById("error");
+                errorDiv.style.display = "block";
+                errorDiv.innerHTML = `<strong>Hata:</strong> ${message}`;
+            }
+
+            function displayError(message) {
+                const errorDiv = document.getElementById("error");
+                errorDiv.style.display = "block";
+                errorDiv.innerHTML = `<strong>Hata:</strong> ${message}`;
+            }
+        </script>
+    </body>
+</html>
