@@ -14,9 +14,10 @@ def random_linear_diophantine_system(m, n):
 def hermite_normal_form(A):
 
     A = sympy.Matrix(A)
-    U = sympy.eye(m)
 
     m, n = A.shape
+    
+    U = sympy.eye(m)
     k = 0
 
     # Transformation to upper triangular form
