@@ -1,6 +1,7 @@
 from smith import linear_diophantine_system_solver as smith_linear_diophantine_system_solver
+from hermite import linear_diophantine_system_solver as hermite_linear_diophantine_system_solver
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sympy import Matrix
 
@@ -8,9 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+
 
 @app.route('/smith', methods=['POST'])
 def smith():
@@ -72,7 +71,7 @@ def hermite():
         sympy_matrix_2d = Matrix(matrix_2d)
         sympy_matrix_1d = Matrix(matrix_1d)
 
-        result_matrix = smith_linear_diophantine_system_solver(sympy_matrix_2d, sympy_matrix_1d)
+        result_matrix = hermite_linear_diophantine_system_solver(sympy_matrix_2d, sympy_matrix_1d)
 
         # SymPy matrisini Python listesine dönüştürme
         result_list = [float(element) for element in result_matrix]
