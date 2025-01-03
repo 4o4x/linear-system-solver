@@ -18,61 +18,33 @@ const IndexPage = () => {
   const [matrix1d, setMatrix1d] = useState<string>(""); // Text input for 1D matrix
   const [result, setResult] = useState<number[] | null>(null);
   const [selectedForm, setSelectedForm] = useState<string>("smith");
-  const [useTableInput2d, setUseTableInput2d] = useState<boolean>(false);
-  const [useTableInput1d, setUseTableInput1d] = useState<boolean>(false);
+  const [useTableInput, setUseTableInput] = useState<boolean>(false); // Single switch for both matrices
   const [matrix2dTable, setMatrix2dTable] = useState<number[][]>([
     [0, 0],
     [0, 0],
   ]);
   const [matrix1dTable, setMatrix1dTable] = useState<number[]>([0, 0]);
+  const [size, setSize] = useState<number>(2); // Single size input for both 2D matrix rows and columns
 
   // Sync table data to text when switching to text mode
   useEffect(() => {
-    if (!useTableInput2d) {
+    if (!useTableInput) {
       setMatrix2d(JSON.stringify(matrix2dTable));
+      setMatrix1d(JSON.stringify(matrix1dTable));
     }
-  }, [useTableInput2d, matrix2dTable]);
+  }, [useTableInput, matrix2dTable, matrix1dTable]);
 
   // Sync text input to table data when switching to table mode
   useEffect(() => {
-    if (useTableInput2d && matrix2d) {
-      try {
-        const parsedMatrix: number[][] = JSON.parse(matrix2d);
-        // Ensure matrix is square
-        const size = parsedMatrix.length;
-        for (let row of parsedMatrix) {
-          if (row.length !== size) {
-            console.error("Matrix is not square");
-            return;
-          }
-        }
-        setMatrix2dTable(parsedMatrix);
-      } catch (error) {
-        console.error("Invalid 2D matrix format", error);
-      }
+    if (useTableInput) {
+      const newMatrix2d = Array.from({ length: size }, () =>
+        Array(size).fill(0),
+      );
+      setMatrix2dTable(newMatrix2d);
+      setMatrix1dTable(new Array(size).fill(0)); // Adjust 1D matrix to match number of rows
     }
-  }, [matrix2d, useTableInput2d]);
+  }, [useTableInput, size]);
 
-  // Sync table data to text when switching to text mode for 1D matrix
-  useEffect(() => {
-    if (!useTableInput1d) {
-      setMatrix1d(JSON.stringify(matrix1dTable));
-    }
-  }, [useTableInput1d, matrix1dTable]);
-
-  // Sync text input to table data when switching to table mode for 1D matrix
-  useEffect(() => {
-    if (useTableInput1d && matrix1d) {
-      try {
-        const parsedMatrix: number[] = JSON.parse(matrix1d);
-        setMatrix1dTable(parsedMatrix);
-      } catch (error) {
-        console.error("Invalid 1D matrix format", error);
-      }
-    }
-  }, [matrix1d, useTableInput1d]);
-
-  // Ensure the size of 2D matrix and 1D matrix are always the same
   const handleMatrix2dChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMatrix2d(e.target.value);
   };
@@ -107,15 +79,11 @@ const IndexPage = () => {
       let matrix2dParsed;
       let matrix1dParsed;
 
-      if (useTableInput2d) {
+      if (useTableInput) {
         matrix2dParsed = matrix2dTable;
-      } else {
-        matrix2dParsed = JSON.parse(matrix2d);
-      }
-
-      if (useTableInput1d) {
         matrix1dParsed = matrix1dTable;
       } else {
+        matrix2dParsed = JSON.parse(matrix2d);
         matrix1dParsed = JSON.parse(matrix1d);
       }
 
@@ -127,7 +95,7 @@ const IndexPage = () => {
         return;
       }
 
-      const response = await fetch(`http://127.0.0.1:5000/${selectedForm}`, {
+      const response = await fetch(`http://127.0.0.1:8080/${selectedForm}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,22 +121,35 @@ const IndexPage = () => {
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
-      <Card className="w-96 p-4">
+      <Card className="p-4">
         <CardContent>
           <h2 className="text-2xl font-bold mb-4">
             Linear Diophantine Equation Solver
           </h2>
 
-          {/* 2D Matrix Input Toggle */}
+          {/* Single size input */}
           <div className="mb-4 flex items-center">
-            <Label className="mr-2">2D Matrix Input (Table/Text):</Label>
-            <Switch
-              checked={useTableInput2d}
-              onCheckedChange={(checked) => setUseTableInput2d(checked)}
+            <Label className="mr-2 text-sm">Matrix Size:</Label>
+            <input
+              type="number"
+              min={1}
+              value={size}
+              onChange={(e) => setSize(Number(e.target.value))}
+              className="w-16 p-2 text-sm border"
             />
           </div>
 
-          {useTableInput2d ? (
+          {/* Single switch for both matrices */}
+          <div className="mb-4 flex items-center">
+            <Label className="mr-2">Toggle Input (Text/Table):</Label>
+            <Switch
+              checked={useTableInput}
+              onCheckedChange={(checked) => setUseTableInput(checked)}
+            />
+          </div>
+
+          {/* 2D Matrix Input (Table/Text) */}
+          {useTableInput ? (
             <>
               <div className="mb-4">
                 <Label>2D Matrix (Table Input):</Label>
@@ -214,16 +195,8 @@ const IndexPage = () => {
             </>
           )}
 
-          {/* 1D Matrix Input Toggle */}
-          <div className="mb-4 flex items-center">
-            <Label className="mr-2">1D Matrix Input (Table/Text):</Label>
-            <Switch
-              checked={useTableInput1d}
-              onCheckedChange={(checked) => setUseTableInput1d(checked)}
-            />
-          </div>
-
-          {useTableInput1d ? (
+          {/* 1D Matrix Input (Table/Text) */}
+          {useTableInput ? (
             <>
               <div className="mb-4">
                 <Label>1D Matrix (Table Input):</Label>
