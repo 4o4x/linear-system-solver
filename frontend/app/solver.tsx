@@ -35,17 +35,48 @@ const IndexPage = () => {
     }
   }, [useTableInput, matrix2dTable, matrix1dTable]);
 
-  // Sync text input to table data when switching to table mode
   useEffect(() => {
     if (useTableInput) {
-      const newMatrix2d = Array.from({ length: size }, () =>
-        Array(size).fill(0),
-      );
-      setMatrix2dTable(newMatrix2d);
-      setMatrix1dTable(new Array(size).fill(0)); // Adjust 1D matrix to match number of rows
+      const parsedMatrix2d = JSON.parse(matrix2d);
+      const parsedMatrix1d = JSON.parse(matrix1d);
+ 
+      // Add new rows to the 2D matrix
+      // If the size is smaller than the current matrix size, remove the extra rows
+      // If the size is larger than the current matrix size, add new rows and columns with 0 values
+ 
+      const updatedMatrix2d = parsedMatrix2d
+        .slice(0, size)
+        .map((row, rowIndex) => {
+          if (row.length < size) {
+            return [...row, ...new Array(size - row.length).fill(0)];
+          } else {
+            return row.slice(0, size);
+          }
+        });
+ 
+      if (parsedMatrix2d.length < size) {
+        updatedMatrix2d.push(
+          ...new Array(size - parsedMatrix2d.length).fill(
+            new Array(size).fill(0),
+          ),
+        );
+      }
+ 
+      setMatrix2dTable(updatedMatrix2d);
+ 
+      // Ensure the 1D matrix length matches the 2D matrix rows
+      // If the size is smaller than the current matrix size, remove the extra values
+      // If the size is larger than the current matrix size, add new values with 0 values
+ 
+      const updatedMatrix1d = parsedMatrix1d.slice(0, size);
+      if (parsedMatrix1d.length < size) {
+        updatedMatrix1d.push(
+          ...new Array(size - parsedMatrix1d.length).fill(0),
+        );
+      }
+      setMatrix1dTable(updatedMatrix1d);
     }
-  }, [useTableInput, size]);
-
+  }, [useTableInput, matrix2d, matrix1d, size]);
   const handleMatrix2dChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMatrix2d(e.target.value);
   };
