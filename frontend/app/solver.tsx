@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {} from "@radix-ui/primitive/";
 import {
   Select,
   SelectTrigger,
@@ -13,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "react-toastify";
+import { LoaderIcon } from "lucide-react";
+<LoaderIcon className="animate-spin" />;
 
 const IndexPage = () => {
   const [matrix2d, setMatrix2d] = useState<string>(""); // Text input for 2D matrix
@@ -26,6 +29,8 @@ const IndexPage = () => {
   ]);
   const [matrix1dTable, setMatrix1dTable] = useState<number[]>([0, 0]);
   const [size, setSize] = useState<number>(2); // Single size input for both 2D matrix rows and columns
+
+  const [isPending, startTransition] = useTransition();
 
   // Sync table data to text when switching to text mode
   useEffect(() => {
@@ -166,13 +171,13 @@ const IndexPage = () => {
   };
 
   const handleGenerateMatrix = () => {
-    const randomMatrix2D = generateMatrix2dRandom(size, size, 1, 100); // 3x4 matrix with values between 1 and 100
+    const randomMatrix2D = generateMatrix2dRandom(size, size, -10, 10); // 3x4 matrix with values between 1 and 100
     setMatrix2dTable(randomMatrix2D);
-    const randomMatrix1D = generateMatrix1dRandom(size, 1, 100); // 10 elements, values between 1 and 100
+    const randomMatrix1D = generateMatrix1dRandom(size, -10, 10); // 10 elements, values between 1 and 100
     setMatrix1dTable(randomMatrix1D);
   };
   const handleGenerateDiophantineSystem = () => {
-    generateMatrix2dRandomDiophantine(size, size, 1, 100);
+    generateMatrix2dRandomDiophantine(size, size, -10, 10);
   };
 
   const handleSubmit = async () => {
@@ -356,34 +361,45 @@ const IndexPage = () => {
           </div>
 
           <div className="grid grid-cols-2 mb-2 gap-x-2">
-            <Button className="w-full" onClick={handleGenerateMatrix}>
+            <Button
+              className="w-full  bg-gray-200 text-black hover:bg-gray-300"
+              onClick={handleGenerateMatrix}
+            >
               Generate Random
             </Button>
 
             <Button
-              className="w-full"
+              className="w-full  bg-gray-200 text-black hover:bg-gray-300"
               onClick={handleGenerateDiophantineSystem}
             >
               Generate Random LDS
             </Button>
           </div>
-          <Button className="w-full mb-4" onClick={handleSubmit}>
+          <Button
+            className="w-full mb-4"
+            onClick={() => {
+              setResult({ resultMatrix: [], error: null });
+              startTransition(handleSubmit);
+            }}
+          >
             Solve
           </Button>
 
           {result && (
             <div className="mt-4">
-              <h3 className="text-xl font-bold">Result:</h3>
+              <div className="flex ">
+                <h3 className="text-xl font-bold">Result:</h3>
+                {isPending && <LoaderIcon className="animate-spin" />}
+              </div>
               {result.error ? (
                 <p className="text-red-500">{result.error}</p> // Display error message in red
               ) : (
-                <ul>
-                  {result.resultMatrix.map((value, index) => (
-                    <li key={index}>
-                      X{index + 1} = {value.toFixed(2)}
-                    </li>
-                  ))}
-                </ul>
+                <Textarea
+                  value={JSON.stringify(result.resultMatrix)}
+                  rows={3}
+                  className="mt-2"
+                  readOnly
+                />
               )}
             </div>
           )}
