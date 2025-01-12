@@ -11,7 +11,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch"; // Assuming you have a Switch component
+import { Switch } from "@/components/ui/switch";
+import { toast } from "react-toastify";
 
 const IndexPage = () => {
   const [matrix2d, setMatrix2d] = useState<string>(""); // Text input for 2D matrix
@@ -107,15 +108,19 @@ const IndexPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        throw new Error(errorData.error);
+        // Attempt to parse the error message from the server response
+        const errorText = await response.text();
+        toast(`Error: ${errorText || "Something went wrong!"}`);
+        return;
       }
 
       const data = await response.json();
       setResult(data.result_matrix);
+      toast("Submission successful!");
     } catch (error) {
-      console.error(error);
+      // Log the error and display the error message using toast
+      console.error("Error:", error);
+      toast(`Error: ${error.message || "Something went wrong!"}`);
     }
   };
 
