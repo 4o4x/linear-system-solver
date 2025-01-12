@@ -75,6 +75,9 @@ def hermite():
 
         # SymPy matrisini Python listesine dönüştürme
         result_list = [float(element) for element in result_matrix]
+        integer_check = [x.is_integer() for x in result_list]
+        if integer_check == False:
+            return jsonify({"error": "No integer solution exists."}), 400
 
         return jsonify({"result_matrix": result_list}), 200
 

@@ -88,14 +88,6 @@ def smith_normal_form(M):
                         improved = False
                         break
 
-            # Step III: Eliminate entries below pivot
-            # pivot_val = A[t, t]
-            # for row_below_pivot_index in range(t+1, m):
-            #     if pivot_val != 0 and A[row_below_pivot_index, t] != 0:
-            #         q = A[row_below_pivot_index, t] // pivot_val
-            #         row_op(row_below_pivot_index, t, -q)
-
-
             # Now eliminate in the row by column ops
             improved_col = False
             while not improved_col:
