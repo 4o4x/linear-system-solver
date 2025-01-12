@@ -39,11 +39,11 @@ const IndexPage = () => {
     if (useTableInput) {
       const parsedMatrix2d = JSON.parse(matrix2d);
       const parsedMatrix1d = JSON.parse(matrix1d);
- 
+
       // Add new rows to the 2D matrix
       // If the size is smaller than the current matrix size, remove the extra rows
       // If the size is larger than the current matrix size, add new rows and columns with 0 values
- 
+
       const updatedMatrix2d = parsedMatrix2d
         .slice(0, size)
         .map((row, rowIndex) => {
@@ -53,7 +53,7 @@ const IndexPage = () => {
             return row.slice(0, size);
           }
         });
- 
+
       if (parsedMatrix2d.length < size) {
         updatedMatrix2d.push(
           ...new Array(size - parsedMatrix2d.length).fill(
@@ -61,13 +61,13 @@ const IndexPage = () => {
           ),
         );
       }
- 
+
       setMatrix2dTable(updatedMatrix2d);
- 
+
       // Ensure the 1D matrix length matches the 2D matrix rows
       // If the size is smaller than the current matrix size, remove the extra values
       // If the size is larger than the current matrix size, add new values with 0 values
- 
+
       const updatedMatrix1d = parsedMatrix1d.slice(0, size);
       if (parsedMatrix1d.length < size) {
         updatedMatrix1d.push(
@@ -105,35 +105,49 @@ const IndexPage = () => {
     updatedMatrix[index] = value;
     setMatrix1dTable(updatedMatrix);
   };
-  const generateMatrix2dRandom = (rows = 0, cols = 0, minValue = 0, maxValue = 10) => {
+  const generateMatrix2dRandom = (
+    rows = 0,
+    cols = 0,
+    minValue = 0,
+    maxValue = 10,
+  ) => {
     const matrix = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () =>
-        Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
-      )
+      Array.from(
+        { length: cols },
+        () => Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue,
+      ),
     );
     return matrix;
   };
   const generateMatrix1dRandom = (size = 0, minValue = 0, maxValue = 10) => {
-    const matrix = Array.from({ length: size }, () =>
-      Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+    const matrix = Array.from(
+      { length: size },
+      () => Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue,
     );
     return matrix;
   };
 
-  const generateMatrix2dRandomDiophantine = (rows = 2, cols = 2, minValue = 1, maxValue = 10) => {
+  const generateMatrix2dRandomDiophantine = (
+    rows = 2,
+    cols = 2,
+    minValue = 1,
+    maxValue = 10,
+  ) => {
     // Generate the matrix A (coefficient matrix)
     const A = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () =>
-        Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
-      )
+      Array.from(
+        { length: cols },
+        () => Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue,
+      ),
     );
     // Generate vector B (right-hand side of the equation)
-    const x = Array.from({ length: rows }, () =>
-      Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+    const x = Array.from(
+      { length: rows },
+      () => Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue,
     );
-  
+
     // Ensure the system has a solution by adjusting vectorB based on matrixA
-    const adjustVectorB = (A: number[][], x: number[]) : number[] => {
+    const adjustVectorB = (A: number[][], x: number[]): number[] => {
       const b: number[] = Array.from({ length: rows }).fill(0);
       for (let i = 0; i < rows; i++) {
         let sum = 0;
@@ -144,23 +158,22 @@ const IndexPage = () => {
       }
       return b;
     };
-  
+
     // Adjust vectorB to ensure the system has a solution
     const b = adjustVectorB(A, x);
     setMatrix2dTable(A);
     setMatrix1dTable(b);
-   
   };
-  
+
   const handleGenerateMatrix = () => {
     const randomMatrix2D = generateMatrix2dRandom(size, size, 1, 100); // 3x4 matrix with values between 1 and 100
     setMatrix2dTable(randomMatrix2D);
     const randomMatrix1D = generateMatrix1dRandom(size, 1, 100); // 10 elements, values between 1 and 100
     setMatrix1dTable(randomMatrix1D);
   };
-  const handleGenerateDiophantineSystem = () =>{
-    generateMatrix2dRandomDiophantine(size,size,1,100);
-  }
+  const handleGenerateDiophantineSystem = () => {
+    generateMatrix2dRandomDiophantine(size, size, 1, 100);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -202,19 +215,15 @@ const IndexPage = () => {
       }
 
       const data = await response.json();
-      setResult(
-        {
-         resultMatrix : data.result_matrix,
-         error : data.error || null,
-
-        });
-
-      } catch (error) {
-       setResult(
-         {
-          error : "Matrices should be filled properly.",
-         });
-      }
+      setResult({
+        resultMatrix: data.result_matrix,
+        error: data.error || null,
+      });
+    } catch (error) {
+      setResult({
+        error: "Matrices should be filled properly.",
+      });
+    }
   };
 
   return (
@@ -346,26 +355,38 @@ const IndexPage = () => {
             </Select>
           </div>
 
+          <div className="grid grid-cols-2 mb-2 gap-x-2">
+            <Button className="w-full" onClick={handleGenerateMatrix}>
+              Generate Random
+            </Button>
+
+            <Button
+              className="w-full"
+              onClick={handleGenerateDiophantineSystem}
+            >
+              Generate Random LDS
+            </Button>
+          </div>
           <Button className="w-full mb-4" onClick={handleSubmit}>
             Solve
           </Button>
 
           {result && (
-          <div className="mt-4">
-            <h3 className="text-xl font-bold">Result:</h3>
-            {result.error ? (
-              <p className="text-red-500">{result.error}</p> // Display error message in red
-            ) : (
-              <ul>
-                {result.resultMatrix.map((value, index) => (
-                  <li key={index}>
-                    X{index + 1} = {value.toFixed(2)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+            <div className="mt-4">
+              <h3 className="text-xl font-bold">Result:</h3>
+              {result.error ? (
+                <p className="text-red-500">{result.error}</p> // Display error message in red
+              ) : (
+                <ul>
+                  {result.resultMatrix.map((value, index) => (
+                    <li key={index}>
+                      X{index + 1} = {value.toFixed(2)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
