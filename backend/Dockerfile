@@ -17,4 +17,4 @@ COPY . ./
 EXPOSE 8080
 
 # Step 2: Run the API with Flask (or your specific framework)
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]
