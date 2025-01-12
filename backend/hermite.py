@@ -76,7 +76,12 @@ def linear_diophantine_system_solver(A, B):
 
     H_transpose = H.transpose()
     U_transpose = U.transpose()
-    H_transpose_inv = H_transpose.inv()
+    
+    try:
+        H_transpose_inv = H_transpose.inv()
+    except:
+        raise Exception("There is no unique solution to this system.")
+    
     y = H_transpose_inv * B_sym
     x_sym = U_transpose*y
 

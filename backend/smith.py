@@ -144,8 +144,11 @@ def linear_diophantine_system_solver(A, B):
         printMatrix(A_sym)
         printMatrix(D)
         exit()
-
-    D_inv = D.inv()       # diagonal (Smith form) => easy to invert
+    try:
+        D_inv = D.inv()       # diagonal (Smith form) => easy to invert
+    except:
+        raise Exception("There is no unique solution to this system.")
+    
     #   A x = B
     #   => L^-1 * D * R^-1 * x = B
     #   => D * (R^-1 x) = L * B

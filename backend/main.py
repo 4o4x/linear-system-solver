@@ -27,10 +27,10 @@ def smith():
 
     # Matrislerin geçerli olup olmadığını kontrol etme
     if not (isinstance(matrix_2d, list) and all(isinstance(row, list) for row in matrix_2d)):
-        return jsonify({"error": "'matrix_2d' iki boyutlu bir liste olmalıdır."}), 400
+        return jsonify({"error": "'matrix_2d' should be 2D list."}), 400
 
     if not isinstance(matrix_1d, list):
-        return jsonify({"error": "'matrix_1d' tek boyutlu bir liste olmalıdır."}), 400
+        return jsonify({"error": "'matrix_1d' should be 1D list."}), 400
 
     try:
         sympy_matrix_2d = Matrix(matrix_2d)
@@ -40,11 +40,13 @@ def smith():
 
         # SymPy matrisini Python listesine dönüştürme
         result_list = [float(element) for element in result_matrix]
-
+        integer_check = all(x.is_integer() for x in result_list)
+        if integer_check == False:
+            return jsonify({"error": "No integer solution exists."}), 200
         return jsonify({"result_matrix": result_list}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 200
 
 @app.route('/hermite', methods=['POST'])
 def hermite():
@@ -62,10 +64,10 @@ def hermite():
 
     # Matrislerin geçerli olup olmadığını kontrol etme
     if not (isinstance(matrix_2d, list) and all(isinstance(row, list) for row in matrix_2d)):
-        return jsonify({"error": "'matrix_2d' iki boyutlu bir liste olmalıdır."}), 400
+        return jsonify({"error": "'matrix_2d' should be 2D list."}), 400
 
     if not isinstance(matrix_1d, list):
-        return jsonify({"error": "'matrix_1d' tek boyutlu bir liste olmalıdır."}), 400
+        return jsonify({"error": "'matrix_1d' should be 1D list."}), 400
 
     try:
         sympy_matrix_2d = Matrix(matrix_2d)
@@ -75,14 +77,14 @@ def hermite():
 
         # SymPy matrisini Python listesine dönüştürme
         result_list = [float(element) for element in result_matrix]
-        integer_check = [x.is_integer() for x in result_list]
+        integer_check = all(x.is_integer() for x in result_list)
         if integer_check == False:
-            return jsonify({"error": "No integer solution exists."}), 400
+            return jsonify({"error": "No integer solution exists."}), 200
 
         return jsonify({"result_matrix": result_list}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 200
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 const IndexPage = () => {
   const [matrix2d, setMatrix2d] = useState<string>(""); // Text input for 2D matrix
   const [matrix1d, setMatrix1d] = useState<string>(""); // Text input for 1D matrix
-  const [result, setResult] = useState<number[] | null>(null);
+  const [result, setResult] = useState({ resultMatrix: [], error: null });
   const [selectedForm, setSelectedForm] = useState<string>("smith");
   const [useTableInput, setUseTableInput] = useState<boolean>(false); // Single switch for both matrices
   const [matrix2dTable, setMatrix2dTable] = useState<number[][]>([
@@ -74,6 +74,62 @@ const IndexPage = () => {
     updatedMatrix[index] = value;
     setMatrix1dTable(updatedMatrix);
   };
+  const generateMatrix2dRandom = (rows = 0, cols = 0, minValue = 0, maxValue = 10) => {
+    const matrix = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () =>
+        Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+      )
+    );
+    return matrix;
+  };
+  const generateMatrix1dRandom = (size = 0, minValue = 0, maxValue = 10) => {
+    const matrix = Array.from({ length: size }, () =>
+      Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+    );
+    return matrix;
+  };
+
+  const generateMatrix2dRandomDiophantine = (rows = 2, cols = 2, minValue = 1, maxValue = 10) => {
+    // Generate the matrix A (coefficient matrix)
+    const A = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () =>
+        Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+      )
+    );
+    // Generate vector B (right-hand side of the equation)
+    const x = Array.from({ length: rows }, () =>
+      Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
+    );
+  
+    // Ensure the system has a solution by adjusting vectorB based on matrixA
+    const adjustVectorB = (A: number[][], x: number[]) : number[] => {
+      const b: number[] = Array.from({ length: rows }).fill(0);
+      for (let i = 0; i < rows; i++) {
+        let sum = 0;
+        for (let j = 0; j < cols; j++) {
+          sum += A[i][j] * x[j]; // Simple adjustment, sum of row values
+        }
+        b[i] = sum; // Adjust B based on the sum of A's row
+      }
+      return b;
+    };
+  
+    // Adjust vectorB to ensure the system has a solution
+    const b = adjustVectorB(A, x);
+    setMatrix2dTable(A);
+    setMatrix1dTable(b);
+   
+  };
+  
+  const handleGenerateMatrix = () => {
+    const randomMatrix2D = generateMatrix2dRandom(size, size, 1, 100); // 3x4 matrix with values between 1 and 100
+    setMatrix2dTable(randomMatrix2D);
+    const randomMatrix1D = generateMatrix1dRandom(size, 1, 100); // 10 elements, values between 1 and 100
+    setMatrix1dTable(randomMatrix1D);
+  };
+  const handleGenerateDiophantineSystem = () =>{
+    generateMatrix2dRandomDiophantine(size,size,1,100);
+  }
 
   const handleSubmit = async () => {
     try {
@@ -115,13 +171,19 @@ const IndexPage = () => {
       }
 
       const data = await response.json();
-      setResult(data.result_matrix);
-      toast("Submission successful!");
-    } catch (error) {
-      // Log the error and display the error message using toast
-      console.error("Error:", error);
-      toast(`Error: ${error.message || "Something went wrong!"}`);
-    }
+      setResult(
+        {
+         resultMatrix : data.result_matrix,
+         error : data.error || null,
+
+        });
+
+      } catch (error) {
+       setResult(
+         {
+          error : "Matrices should be filled properly.",
+         });
+      }
   };
 
   return (
@@ -258,17 +320,21 @@ const IndexPage = () => {
           </Button>
 
           {result && (
-            <div className="mt-4">
-              <h3 className="text-xl font-bold">Result:</h3>
+          <div className="mt-4">
+            <h3 className="text-xl font-bold">Result:</h3>
+            {result.error ? (
+              <p className="text-red-500">{result.error}</p> // Display error message in red
+            ) : (
               <ul>
-                {result.map((value, index) => (
+                {result.resultMatrix.map((value, index) => (
                   <li key={index}>
                     X{index + 1} = {value.toFixed(2)}
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
+          </div>
+        )}
         </CardContent>
       </Card>
     </div>
